@@ -24,7 +24,7 @@ const server = http.createServer((req, res) => {
     const id = url.parse(req.url, true).query.id;        // parsing the query object
     // console.log(url.parse(req.url, true).query.id);
     
-    // PRODUCTS OVERVIEW
+    // LAPTOP DETAIL
     if (pathName === '/laptop' && id< laptopData.length ) {
         // build response header
         res.writeHead(200, { 'Content-type': 'text/html'});
@@ -35,41 +35,35 @@ const server = http.createServer((req, res) => {
            if ( err ) {
                console.log(err);
            } else {
-
-            const laptop = laptopData[id];
-            
-            let output = data.replace(/{%PRODUCTNAME%}/g,laptop.productName);  // put some regex templates to use
-            output = output.replace('{%IMAGE%}',laptop.image);
-            output = output.replace(/{%PRICE%}/g,laptop.price);
-            output = output.replace('{%SCREEN%}',laptop.screen);
-            output = output.replace('{%CPU%}',laptop.cpu);
-            output = output.replace('{%STORAGE%}',laptop.storage);
-            output = output.replace('{%RAM%}',laptop.ram);
-            output = output.replace('{%DESCRIPTION%}',laptop.description);
- 
-            res.end(output);
+               const laptop = laptopData[id];
+               const output = replaceTemplate(data,laptop); res.end(output);
            }
-        });       
+        }); 
+
+    // PRODUCTS OVERVIEW         
     } else if (pathName === '/products' || pathName === '/' ) {
         // build response header
         res.writeHead(200, { 'Content-type': 'text/html'});
 
         // async this time, fill in the prebuild laptop.html template based on id from the routing query
-        // fs.readFile(`${__dirname}/templates/template-overview.html`, 'utf-8', (err, data) => {
-        //     let overviewOutput = data;
+        fs.readFile(`${__dirname}/templates/template-overview.html`, 'utf-8', (err, data) => {
+            let overviewOutput = data;
             
-        //     fs.readFile(`${__dirname}/templates/template-card.html`, 'utf-8', (err, data) => {
+            fs.readFile(`${__dirname}/templates/template-card.html`, 'utf-8', (err, data) => {
             
-        //         const cardsOutput = laptopData.map(el => replaceTemplate(data, el)).join('');
-        //         overviewOutput = overviewOutput.replace('{%CARDS%}', cardsOutput); 
+                const cardsOutput = laptopData.map(el => replaceTemplate(data, el)).join('');
+                overviewOutput = overviewOutput.replace('{%CARDS%}', cardsOutput); 
                 
-        //         // build response end
-        //         res.end(overviewOutput);
-        //     });
-        // });     
+                // build response end
+                res.end(overviewOutput);
+            });
+        });        
 
-        //    res.end(output);
-        // });         
+    // URL NOT FOUND    
+    } else {
+        // build response header
+        res.writeHead(200, { 'Content-type': 'text/html'});
+        res.end('URL not found!');
     }
 });
 
@@ -78,3 +72,17 @@ const server = http.createServer((req, res) => {
 server.listen(1337, '127.0.0.1', () => {
     console.log('Listening for requests now');
 });
+
+function replaceTemplate(originalHTML, laptop) {
+    let output = originalHTML.replace(/{%PRODUCTNAME%}/g,laptop.productName);  // put some regex templates to use
+    output = output.replace('{%IMAGE%}',laptop.image);
+    output = output.replace(/{%PRICE%}/g,laptop.price);
+    output = output.replace('{%SCREEN%}',laptop.screen);
+    output = output.replace('{%CPU%}',laptop.cpu);
+    output = output.replace('{%STORAGE%}',laptop.storage);
+    output = output.replace('{%RAM%}',laptop.ram);
+    output = output.replace('{%DESCRIPTION%}',laptop.description);
+    output = output.replace('{%ID%}',laptop.id);
+
+    return output;
+}
