@@ -19,6 +19,7 @@ const server = http.createServer((req, res) => {
     
     // putting url module at work
     // console.log(url.parse(req.url, true));
+    // console.log(url.parse(req.url, true).pathname);
     const pathName = url.parse(req.url, true).pathname;  // true for parsing into object
     // console.log(url.parse(req.url, true).query);
     const id = url.parse(req.url, true).query.id;        // parsing the query object
@@ -57,8 +58,23 @@ const server = http.createServer((req, res) => {
                 // build response end
                 res.end(overviewOutput);
             });
-        });        
+        });
+        
+    // IMAGES ARE SEPARETE REQUESTS INDEED, see console.log(url.parse(req.url, true).pathname);  
+    } else if ( (/\.(jpg|jpeg|png|gif)$/i).test(pathName) ) {
+        // async this time, fill in the prebuild laptop.html template based on id from the routing query
+        fs.readFile(`${__dirname}/data/img${pathName}`, (err, data) => {
+            if ( err ) {
+                console.log(err);
+            } else {
+                // build response header
+                res.writeHead(200, { 'Content-type': 'img/jpg'});
 
+                // build response end
+                res.end(data);
+            }
+         }); 
+    
     // URL NOT FOUND    
     } else {
         // build response header
